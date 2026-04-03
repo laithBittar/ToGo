@@ -7,14 +7,22 @@ import '../../logic/search_bloc.dart';
 import '../../logic/search_state.dart';
 import '../main_screen.dart';       
 
-class SearchButton extends StatelessWidget {
+class SearchButton extends StatefulWidget {
   const SearchButton({super.key});
+
+  @override
+  State<SearchButton> createState() => _SearchButtonState();
+}
+
+class _SearchButtonState extends State<SearchButton> {
+  bool _isLoading = false; // المتغير المسؤول عن إظهار التحميل
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SearchBloc, SearchState>(
       builder: (context, state) => ElevatedButton(
-        onPressed: () {
+        // إذا عم يحمل، منوقف الضغط عشان ما يتدبل الحجز
+        onPressed: _isLoading ? null : () async {
           final model = state.searchModel;
           
           if (model.fromCity.isEmpty || model.toCity.isEmpty) {
@@ -22,16 +30,25 @@ class SearchButton extends StatelessWidget {
           } else if (model.tripDate == null) {
             AppUtils.showError(context, "يرجى اختيار التاريخ");
           } else {
-            print("🚀 حجز من ${model.fromCity} إلى ${model.toCity}");
+            // 1. تشغيل دائرة التحميل
+            setState(() => _isLoading = true);
             
-            context.read<BottomNavCubit>().changeTab(1);
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("تم إضافة الرحلة لجدولك", style: TextStyle(fontFamily: 'Cairo')),
-                backgroundColor: Colors.green,
-                duration: Duration(seconds: 1),
-              ),
-            );
+            // 2. تأخير وهمي لمدة ثانيتين (Fake Loading)
+            await Future.delayed(const Duration(seconds: 2));
+            
+            // 3. إيقاف التحميل والانتقال للصفحة التانية
+            if (mounted) {
+              setState(() => _isLoading = false);
+              context.read<BottomNavCubit>().changeTab(1);
+              
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("تم إضافة الرحلة لجدولك", style: TextStyle(fontFamily: 'Cairo')),
+                  backgroundColor: Colors.green,
+                  duration: Duration(seconds: 1),
+                ),
+              );
+            }
           }
         },
         style: ElevatedButton.styleFrom(
@@ -39,15 +56,22 @@ class SearchButton extends StatelessWidget {
           minimumSize: const Size(double.infinity, 60),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
-        child: const Text(
-          "قم بالحجز",
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'Cairo',
-          ),
-        ),
+        // 4. تبديل محتوى الزر بين النص ودائرة التحميل
+        child: _isLoading
+            ? const SizedBox(
+                height: 25,
+                width: 25,
+                child: CircularProgressIndicator(color: Colors.black, strokeWidth: 3),
+              )
+            : const Text(
+                "قم بالحجز",
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Cairo',
+                ),
+              ),
       ),
     );
   }

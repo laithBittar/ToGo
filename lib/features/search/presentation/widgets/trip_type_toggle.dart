@@ -15,7 +15,6 @@ class TripTypeToggle extends StatelessWidget {
       builder: (context, state) {
         final isVip = state.searchModel.isVip;
         
-
         return Container(
           decoration: BoxDecoration(
             color: AppColors.cardBg,
@@ -58,11 +57,14 @@ class TripTypeToggle extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
           ),
           alignment: Alignment.center,
-          child: Text(
-            label,
-            style: TextStyle(
-              color: isSelected ? Colors.black : AppColors.textGrey,
-              fontWeight: FontWeight.bold,
+          child: FittedBox( 
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? Colors.black : AppColors.textGrey,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ),
